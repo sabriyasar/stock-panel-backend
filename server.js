@@ -12,7 +12,9 @@ const PORT = process.env.PORT || 5000;
 // CORS
 const allowedOrigins = [
   'http://localhost:3000',               // local frontend
+  'http://localhost:5000',
   'https://stock-panel-six.vercel.app', // prod frontend
+  'https://stock-panel-backend-1.onrender.com',
 ];
 app.use(cors({
   origin: function(origin, callback) {
