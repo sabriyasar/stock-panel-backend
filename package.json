@@ -1,15 +1,6 @@
 {
-  "name": "stok-yonetim-backend",
-  "version": "1.0.0",
-  "main": "server.ts",
-  "scripts": {
-    "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' server.ts",
-    "start": "ts-node server.ts",
-    "build": "tsc"
-  },
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "mongoose": "^8.19.2",
     "multer": "^2.0.2"
