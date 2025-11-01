@@ -38,12 +38,12 @@ connectDB();
 app.use("/api/products", productsRouter);
 
 // ADMIN PANEL
-app.use("/api/users", adminRouter);
-app.use("/api/auth", adminAuthRouter);
+app.use("/api/admin/users", adminRouter);
+app.use("/api/admin/auth", adminAuthRouter);
 
 // USER PANEL
-app.use("/api/users", usersRouter);
-app.use("/api/auth", usersAuthRouter);
+app.use("/api/users/users", usersRouter);
+app.use("/api/users/auth", usersAuthRouter);
 
 // Server start
 app.listen(PORT, () => {
