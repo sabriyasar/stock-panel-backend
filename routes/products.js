@@ -9,10 +9,19 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // GET: tüm ürünler
+// Base64 string olarak frontend’e gönder
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find().select('-image'); // image alanını göndermek istemezsen
-    res.status(200).json(products);
+    const products = await Product.find();
+    const formatted = products.map(p => ({
+      _id: p._id,
+      name: p.name,
+      price: p.price,
+      stock: p.stock,
+      barcode: p.barcode,
+      image: p.image ? `data:${p.image.contentType};base64,${p.image.data.toString('base64')}` : ''
+    }));
+    res.status(200).json(formatted);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ürünler alınamadı' });
@@ -26,7 +35,14 @@ router.get('/:id', async (req, res) => {
     const product = await Product.findById(id);
     if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
 
-    res.status(200).json(product);
+    res.status(200).json({
+      _id: product._id,
+      name: product.name,
+      price: product.price,
+      stock: product.stock,
+      barcode: product.barcode,
+      image: product.image ? `data:${product.image.contentType};base64,${product.image.data.toString('base64')}` : ''
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ürün alınamadı' });
