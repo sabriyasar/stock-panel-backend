@@ -1,41 +1,39 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
+require("dotenv").config();
+const express = require("express");
+const corsOptions = require("./config/cors");
+const cors = require("cors");
+const path = require("path");
 
-const connectDB = require('./utils/db');
-const productsRouter = require('./routes/products');
+const connectDB = require("./utils/db");
+const productsRouter = require("./routes/products");
+const usersRouter = require("./routes/admin/user");
+const authRouter = require("./routes/admin/auth");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4550;
+
+// Body parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // CORS
-const allowedOrigins = [
-  'http://localhost:3000',               // local frontend
-  'http://localhost:5000',
-  'https://stock-panel-js.vercel.app', // prod frontend
-  'https://stock-panel-backend-1.onrender.com',
-];
-app.use(cors({
-  origin: function(origin, callback) {
-    // origin null olabilir (Postman, curl vs için)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-}));
+app.use(cors(corsOptions));
 
-app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Preflight OPTIONS için tüm yolları açık bırak
+app.options("*", cors(corsOptions));
+
+// Static files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // MongoDB bağlantısı
 connectDB();
 
 // Routes
-app.use('/api/products', productsRouter);
+app.use("/api/products", productsRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/auth", authRouter);
 
 // Server start
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
