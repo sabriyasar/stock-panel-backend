@@ -5,7 +5,7 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3008', // admin paneli
     'http://localhost:5000', // backend
-    'stock-user-panel.vercel.app', // kullanıcı paneli
+    'https://stock-user-panel.vercel.app', // kullanıcı paneli
     'https://stock-admin-panel.vercel.app' // admin paneli
   ];
   
