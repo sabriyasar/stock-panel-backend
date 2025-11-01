@@ -5,6 +5,8 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3008', // admin paneli
     'http://localhost:5000', // backend
+    'https://stock-panel-js.vercel.app', // kullanıcı paneli
+    'https://stock-admin-panel.vercel.app' // admin paneli
   ];
   
   const corsOptions = {
