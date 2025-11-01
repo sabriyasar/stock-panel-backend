@@ -1,13 +1,20 @@
 require("dotenv").config();
 const express = require("express");
-const corsOptions = require("./config/cors");
 const cors = require("cors");
 const path = require("path");
 
 const connectDB = require("./utils/db");
-const productsRouter = require("./routes/products");
-const usersRouter = require("./routes/admin/user");
-const authRouter = require("./routes/admin/auth");
+
+// Admin routes
+const adminUsersRouter = require("./routes/admin/user");
+const adminAuthRouter = require("./routes/admin/auth");
+
+// User routes
+const userUsersRouter = require("./routes/users/user");
+const userAuthRouter = require("./routes/users/auth");
+
+// CORS options
+const corsOptions = require("./config/cors");
 
 const app = express();
 const PORT = process.env.PORT || 4550;
@@ -28,10 +35,13 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // MongoDB bağlantısı
 connectDB();
 
-// Routes
-app.use("/api/products", productsRouter);
-app.use("/api/users", usersRouter);
-app.use("/api/auth", authRouter);
+// Admin routes
+app.use("/admin/auth", adminAuthRouter);
+app.use("/admin/users", adminUsersRouter);
+
+// User routes
+app.use("/users/auth", userAuthRouter);
+app.use("/users/users", userUsersRouter);
 
 // Server start
 app.listen(PORT, () => {
