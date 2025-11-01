@@ -6,9 +6,8 @@ const Product = require('../models/Product');
 
 const router = express.Router();
 
-// 🚨 Render persistent disk mount path
-// Render dashboard’dan eklediğin disk yolunu kullan
-const uploadDir = '/opt/render/uploads';
+// uploads klasörü varsa yoksa oluştur
+const uploadDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -28,19 +27,6 @@ router.get('/', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ürünler alınamadı' });
-  }
-});
-
-// GET: tek ürün
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const product = await Product.findById(id);
-    if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
-    res.status(200).json(product);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Ürün alınamadı' });
   }
 });
 
@@ -66,6 +52,19 @@ router.post('/', upload.single('image'), async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ürün eklenemedi' });
+  }
+});
+
+// GET: tek ürün
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
+    res.status(200).json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ürün alınamadı' });
   }
 });
 
