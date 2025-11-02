@@ -6,7 +6,8 @@ const authMiddleware = require('../../middleware/auth') // token doğrulama midd
 // GET: /users/profile
 router.get('/profile', authMiddleware('user'), async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
+    // token'dan gelen id ile kullanıcıyı bul
+    const user = await User.findOne({ _id: req.user.id, role: 'user' }).select('-password')
     if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' })
     res.json(user)
   } catch (err) {

@@ -12,8 +12,11 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    // sadece role: 'user' olanları al
-    const user = await User.findOne({ email, role: 'user' })
+    // Case-insensitive email araması ve sadece role: 'user'
+    const user = await User.findOne({ 
+      email: { $regex: `^${email}$`, $options: 'i' }, 
+      role: 'user' 
+    })
     if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' })
 
     const isMatch = await user.comparePassword(password)
