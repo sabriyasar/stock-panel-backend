@@ -14,6 +14,24 @@ router.get('/', auth('admin'), async (req, res) => {
   }
 })
 
+// GET: Kullanıcı istatistikleri
+router.get('/stats', auth('admin'), async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments()
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+    const todayUsers = await User.countDocuments({ createdAt: { $gte: startOfDay } })
+
+    res.status(200).json({
+      totalUsers,
+      todayUsers
+    })
+  } catch (err) {
+    console.error('İstatistikler alınamadı:', err)
+    res.status(500).json({ error: 'İstatistikler alınamadı' })
+  }
+})
+
 // POST: Yeni kullanıcı ekle
 router.post('/', auth('admin'), async (req, res) => {
   const { firstName, lastName, company, email, password, role, package } = req.body
