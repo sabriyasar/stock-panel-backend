@@ -4,12 +4,11 @@ const Product = require('../models/Product');
 
 const router = express.Router();
 
-// Multer memory storage (dosyayı bellekte tutuyor)
+// Multer memory storage
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // GET: tüm ürünler
-// Base64 string olarak frontend’e gönder
 router.get('/', async (req, res) => {
   try {
     const products = await Product.find();
@@ -18,7 +17,7 @@ router.get('/', async (req, res) => {
       name: p.name,
       price: p.price,
       stock: p.stock,
-      barcode: p.barcode,
+      barcode: p.barcode || '',
       image: p.image?.data ? `data:${p.image.contentType};base64,${p.image.data.toString('base64')}` : ''
     }));
     res.status(200).json(formatted);
@@ -40,8 +39,8 @@ router.get('/:id', async (req, res) => {
       name: product.name,
       price: product.price,
       stock: product.stock,
-      barcode: product.barcode,
-      image: product.image?.data ? `data:${product.image.contentType};base64,${product.image.data.toString('base64')}` : ''
+      barcode: product.barcode || '',
+      image: product.image?.data ? `data:${p.image.contentType};base64,${p.image.data.toString('base64')}` : ''
     });
   } catch (err) {
     console.error(err);
@@ -52,7 +51,7 @@ router.get('/:id', async (req, res) => {
 // POST: yeni ürün ekle
 router.post('/', upload.single('image'), async (req, res) => {
   try {
-    const { name, price, stock } = req.body;
+    const { name, price, stock, barcode } = req.body;
     if (!name || !price || !stock) {
       return res.status(400).json({ error: 'Tüm alanlar zorunludur' });
     }
@@ -63,6 +62,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       stock: parseInt(stock, 10),
     };
 
+    if (barcode) productData.barcode = barcode;
     if (req.file) {
       productData.image = {
         data: req.file.buffer,
@@ -83,7 +83,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 router.put('/:id', upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, stock } = req.body;
+    const { name, price, stock, barcode } = req.body;
 
     const product = await Product.findById(id);
     if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
@@ -91,6 +91,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     if (name) product.name = name;
     if (price) product.price = parseFloat(price);
     if (stock) product.stock = parseInt(stock, 10);
+    if (barcode !== undefined) product.barcode = barcode;
 
     if (req.file) {
       product.image = {
@@ -127,62 +128,3 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
-
-/* const express = require('express');
-const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
-const Product = require('../models/Product');
-
-const router = express.Router();
-
-// uploads klasörü varsa yoksa oluştur
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Multer ayarı
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
-});
-const upload = multer({ storage });
-
-// GET: tüm ürünler
-router.get('/', async (req, res) => {
-  try {
-    const products = await Product.find();
-    res.status(200).json(products);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Ürünler alınamadı' });
-  }
-});
-
-// POST: yeni ürün ekle
-router.post('/', upload.single('image'), async (req, res) => {
-  try {
-    const { name, price, stock } = req.body;
-    if (!name || !price || !stock) {
-      return res.status(400).json({ error: 'Tüm alanlar zorunludur' });
-    }
-
-    const priceNum = parseFloat(price);
-    const stockNum = parseInt(stock, 10);
-    if (isNaN(priceNum) || isNaN(stockNum)) {
-      return res.status(400).json({ error: 'Price veya stock geçerli değil' });
-    }
-
-    const image = req.file ? req.file.filename : '';
-    const product = new Product({ name, price: priceNum, stock: stockNum, image });
-
-    await product.save();
-    res.status(201).json(product);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Ürün eklenemedi' });
-  }
-});
-
-module.exports = router; */
