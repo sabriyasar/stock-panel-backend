@@ -1,4 +1,5 @@
 require("dotenv").config();
+console.log('TEST ENV MONGO_URI:', process.env.MONGO_URI);
 const express = require("express");
 const corsOptions = require("./config/cors");
 const cors = require("cors");
@@ -32,6 +33,7 @@ app.options("*", cors(corsOptions));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // MongoDB bağlantısı
+console.log(process.env.MONGO_URI)
 connectDB();
 
 // Routes
