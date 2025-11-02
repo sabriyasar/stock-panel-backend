@@ -25,7 +25,6 @@ router.post('/', auth('admin'), async (req, res) => {
     // Case-insensitive email kontrolü
     const existing = await User.findOne({ email: { $regex: `^${email}$`, $options: 'i' } })
     if (existing) {
-      console.log('Email zaten kayıtlı:', email)
       return res.status(400).json({ error: 'Bu email zaten kayıtlı' })
     }
 
@@ -49,7 +48,8 @@ router.post('/', auth('admin'), async (req, res) => {
       email: user.email,
       role: user.role,
       package: user.package,
-      company: user.company
+      company: user.company,
+      fullName: `${user.firstName} ${user.lastName}`.trim()
     })
   } catch (err) {
     console.error('Kullanıcı eklenemedi:', err)
@@ -84,7 +84,8 @@ router.put('/:id', auth('admin'), async (req, res) => {
       email: user.email,
       role: user.role,
       package: user.package,
-      company: user.company
+      company: user.company,
+      fullName: `${user.firstName} ${user.lastName}`.trim()
     })
   } catch (err) {
     console.error('Kullanıcı güncellenemedi:', err)
