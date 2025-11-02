@@ -5,10 +5,14 @@ const ProductSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   stock: { type: Number, required: true },
   image: {
-    data: Buffer,
-    contentType: String,
+    data: { type: Buffer },       // opsiyonel
+    contentType: { type: String },// opsiyonel
   },
-  barcode: { type: String }, // opsiyonel
+  barcode: {
+    type: String,
+    unique: true,
+    sparse: true, // null veya undefined olursa unique index hatası çıkmaz
+  },
 });
 
 module.exports = mongoose.model('Product', ProductSchema);
