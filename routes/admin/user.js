@@ -31,7 +31,15 @@ router.post('/', auth('admin'), async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
-    const user = new User({ firstName, lastName, company, email, password: hashedPassword, role, package })
+    const user = new User({
+      firstName,
+      lastName,
+      company,
+      email,
+      password: hashedPassword,
+      role,
+      package
+    })
 
     await user.save()
     console.log('Yeni kullanıcı oluşturuldu:', email)
