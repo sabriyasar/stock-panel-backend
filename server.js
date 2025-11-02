@@ -17,6 +17,8 @@ const adminAuthRouter = require("./routes/admin/auth");
 const usersRouter = require("./routes/users/user");
 const usersAuthRouter = require("./routes/users/auth");
 
+const userStatsRouter = require('./routes/users/stats')
+
 const app = express();
 const server = http.createServer(app); // 👈 Express'i HTTP server'a bağla
 const io = new Server(server, {
@@ -81,6 +83,9 @@ app.get("/api/admin/users/stats", (req, res) => {
     onlineUsers: onlineUsers.size
   });
 });
+
+// Kullanıcı paneli istatistik
+app.use('/api/users/stats', userStatsRouter)
 
 // Server start
 server.listen(PORT, () => {
