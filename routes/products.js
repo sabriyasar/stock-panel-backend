@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
       price: p.price,
       stock: p.stock,
       barcode: p.barcode,
-      image: p.image ? `data:${p.image.contentType};base64,${p.image.data.toString('base64')}` : ''
+      image: p.image?.data ? `data:${p.image.contentType};base64,${p.image.data.toString('base64')}` : ''
     }));
     res.status(200).json(formatted);
   } catch (err) {
@@ -41,7 +41,7 @@ router.get('/:id', async (req, res) => {
       price: product.price,
       stock: product.stock,
       barcode: product.barcode,
-      image: product.image ? `data:${product.image.contentType};base64,${product.image.data.toString('base64')}` : ''
+      image: product.image?.data ? `data:${product.image.contentType};base64,${product.image.data.toString('base64')}` : ''
     });
   } catch (err) {
     console.error(err);
@@ -127,7 +127,6 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
-
 
 /* const express = require('express');
 const multer = require('multer');
