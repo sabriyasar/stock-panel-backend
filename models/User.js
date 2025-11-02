@@ -12,18 +12,17 @@ const UserSchema = new mongoose.Schema({
   package: { type: String, default: 'basic' }
 }, { timestamps: true })
 
-// Şifre hashleme
+// Şifre hashleme ve name alanını oluştur
 UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next()
-
-  const salt = await bcrypt.genSalt(10)
-  this.password = await bcrypt.hash(this.password, salt)
-  next()
-})
-
-// Name alanını oluştur
-UserSchema.pre('save', function(next) {
+  // Password hash
+  if (this.isModified('password')) {
+    const salt = await bcrypt.genSalt(10)
+    this.password = await bcrypt.hash(this.password, salt)
+  }
+  
+  // Name alanını oluştur
   this.name = `${this.firstName} ${this.lastName}`.trim()
+
   next()
 })
 

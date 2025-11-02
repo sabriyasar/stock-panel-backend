@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../../models/User')
-const bcrypt = require('bcrypt')
 const auth = require('../../middleware/auth')
 
 // GET: Tüm kullanıcıları getir
@@ -30,13 +29,12 @@ router.post('/', auth('admin'), async (req, res) => {
       return res.status(400).json({ error: 'Bu email zaten kayıtlı' })
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
     const user = new User({
       firstName,
       lastName,
       company,
       email,
-      password: hashedPassword,
+      password, // pre-save hook ile hashleniyor
       role,
       package
     })
@@ -74,7 +72,7 @@ router.put('/:id', auth('admin'), async (req, res) => {
     if (email) user.email = email
     if (role) user.role = role
     if (package) user.package = package
-    if (password) user.password = await bcrypt.hash(password, 10)
+    if (password) user.password = password // pre-save hook ile hashleniyor
 
     await user.save()
     console.log('Kullanıcı güncellendi:', email || user.email)
