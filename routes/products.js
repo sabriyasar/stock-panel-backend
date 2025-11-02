@@ -12,13 +12,15 @@ const upload = multer({ storage });
 router.get('/', async (req, res) => {
   try {
     const products = await Product.find();
-    const formatted = products.map(p => ({
-      _id: p._id,
-      name: p.name,
-      price: p.price,
-      stock: p.stock,
-      barcode: p.barcode || '',
-      image: p.image?.data ? `data:${p.image.contentType};base64,${p.image.data.toString('base64')}` : ''
+    const formatted = products.map(product => ({
+      _id: product._id,
+      name: product.name,
+      price: product.price,
+      stock: product.stock,
+      barcode: product.barcode || '',
+      image: product.image?.data
+        ? `data:${product.image.contentType};base64,${product.image.data.toString('base64')}`
+        : ''
     }));
     res.status(200).json(formatted);
   } catch (err) {
@@ -40,7 +42,9 @@ router.get('/:id', async (req, res) => {
       price: product.price,
       stock: product.stock,
       barcode: product.barcode || '',
-      image: product.image?.data ? `data:${p.image.contentType};base64,${p.image.data.toString('base64')}` : ''
+      image: product.image?.data
+        ? `data:${product.image.contentType};base64,${product.image.data.toString('base64')}`
+        : ''
     });
   } catch (err) {
     console.error(err);
