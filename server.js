@@ -24,10 +24,24 @@ const userStatsRouter = require("./routes/users/stats");
 
 const app = express();
 const server = http.createServer(app);
+
+// 🔥 config/cors.js içindeki allowedOrigins'i al
+const { origin: originFn } = corsOptions;
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3008',
+  'http://localhost:5000',
+  'https://stock-user-panel.vercel.app',
+  'https://stock-admin-panel.vercel.app',
+  'https://stock-panel-backend-1.onrender.com'
+];
+
+// ✅ SOCKET.IO CORS yapılandırması
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
@@ -37,7 +51,7 @@ const PORT = process.env.PORT || 4550;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS
+// ✅ CORS (Express tarafı)
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
@@ -47,7 +61,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // MongoDB bağlantısı
 connectDB();
 
-// ✅ SOCKET.IO bağlanıyor
+// ✅ SOCKET.IO Eventleri
 io.on("connection", (socket) => {
   console.log("🟢 Yeni bağlantı:", socket.id);
   onlineUsers.add(socket.id);
@@ -75,5 +89,5 @@ app.use("/api/users/stats", userStatsRouter);
 
 // ✅ SERVER BAŞLAT
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
