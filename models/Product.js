@@ -13,6 +13,11 @@ const ProductSchema = new mongoose.Schema({
     unique: true,   // benzersiz olmalı
     sparse: true,   // null veya undefined olursa unique index hatası çıkmaz
   },
+  userId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true // her ürün mutlaka bir kullanıcıya bağlı olmalı
+  },
 });
 
 // Gerekirse manuel index oluşturma (Mongoose otomatik de oluşturur)
