@@ -1,21 +1,21 @@
 const express = require('express');
 const multer = require('multer');
 const Product = require('../models/Product');
-const authMiddleware = require('../middlewares/auth'); // 👈 token doğrulama middleware
+const authMiddleware = require('../middleware/auth'); // 👈 middleware oluştur ve yolu doğru ver
 
 const router = express.Router();
+
+// 🔹 Tüm endpointlerde auth middleware kullanıyoruz
+router.use(authMiddleware);
 
 // Multer memory storage
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// 🔹 Tüm endpointlerde auth middleware kullanıyoruz
-router.use(authMiddleware);
-
 // GET: kendi ürünlerini listele
 router.get('/', async (req, res) => {
   try {
-    const userId = req.user.id; // token’dan gelen kullanıcı ID
+    const userId = req.user.id;
     const products = await Product.find({ userId });
 
     const formatted = products.map(product => ({
