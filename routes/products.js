@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const Product = require('../models/Product');
+const auth = require('../middleware/auth'); // 👈 token doğrulama middleware
 
 const router = express.Router();
 
@@ -8,10 +9,15 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// GET: tüm ürünler
+// 🔹 Tüm route’lara auth middleware ekliyoruz
+router.use(auth()); // opsiyonel role verilebilir, örn: auth('admin')
+
+// GET: kendi ürünlerini listele
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find();
+    const userId = req.user.id; // token’dan gelen kullanıcı ID
+    const products = await Product.find({ userId });
+
     const formatted = products.map(product => ({
       _id: product._id,
       name: product.name,
@@ -22,6 +28,7 @@ router.get('/', async (req, res) => {
         ? `data:${product.image.contentType};base64,${product.image.data.toString('base64')}`
         : ''
     }));
+
     res.status(200).json(formatted);
   } catch (err) {
     console.error(err);
@@ -29,11 +36,13 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET: tek ürün
+// GET: tek ürün (sadece kendi ürününü görebilir)
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findById(id);
+    const userId = req.user.id;
+
+    const product = await Product.findOne({ _id: id, userId });
     if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
 
     res.status(200).json({
@@ -64,6 +73,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       name,
       price: parseFloat(price),
       stock: parseInt(stock, 10),
+      userId: req.user.id, // 🔹 ürün sahibi kullanıcı ID
     };
 
     if (barcode) productData.barcode = barcode;
@@ -83,14 +93,15 @@ router.post('/', upload.single('image'), async (req, res) => {
   }
 });
 
-// PUT: ürün güncelle
+// PUT: ürün güncelle (sadece kendi ürünü)
 router.put('/:id', upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, price, stock, barcode } = req.body;
+    const userId = req.user.id;
 
-    const product = await Product.findById(id);
-    if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
+    const product = await Product.findOne({ _id: id, userId });
+    if (!product) return res.status(404).json({ error: 'Ürün bulunamadı veya yetkiniz yok' });
 
     if (name) product.name = name;
     if (price) product.price = parseFloat(price);
@@ -112,17 +123,14 @@ router.put('/:id', upload.single('image'), async (req, res) => {
   }
 });
 
-// DELETE: ürün sil
+// DELETE: ürün sil (sadece kendi ürünü)
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const mongoose = require('mongoose');
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: 'Geçersiz ürün ID' });
-    }
+    const userId = req.user.id;
 
-    const product = await Product.findByIdAndDelete(id);
-    if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
+    const product = await Product.findOneAndDelete({ _id: id, userId });
+    if (!product) return res.status(404).json({ error: 'Ürün bulunamadı veya yetkiniz yok' });
 
     res.status(200).json({ message: 'Ürün silindi' });
   } catch (err) {
