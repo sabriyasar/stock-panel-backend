@@ -3,6 +3,7 @@ const multer = require("multer");
 const Product = require("../../models/Product");
 const auth = require("../../middleware/auth");
 const User = require("../../models/User");
+const jwt = require('jsonwebtoken')
 
 const router = express.Router();
 
