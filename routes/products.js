@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const Product = require('../models/Product');
 const auth = require('../middleware/auth');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// GET: sadece giriş yapan kullanıcının ürünleri
+// ✅ GET: sadece giriş yapan kullanıcının ürünleri
 router.get('/', auth(), async (req, res) => {
   try {
     const userId = req.user.id;
@@ -31,11 +32,10 @@ router.get('/', auth(), async (req, res) => {
   }
 });
 
-// GET: Tek bir ürün getir (sadece owner erişebilir)
+// ✅ GET: Tek bir ürün getir (sadece owner erişebilir)
 router.get('/:id', auth(), async (req, res) => {
   try {
     const { id } = req.params;
-    const mongoose = require('mongoose');
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'Geçersiz ürün ID' });
     }
@@ -66,7 +66,7 @@ router.get('/:id', auth(), async (req, res) => {
   }
 });
 
-// POST: yeni ürün ekle (owner atanacak)
+// ✅ POST: Yeni ürün ekle (owner atanacak)
 router.post('/', auth(), upload.single('image'), async (req, res) => {
   try {
     const { name, price, stock, barcode } = req.body;
@@ -98,11 +98,15 @@ router.post('/', auth(), upload.single('image'), async (req, res) => {
   }
 });
 
-// PUT ve DELETE işlemlerinde de auth ekleyip, sadece owner kontrolü yapılabilir
+// ✅ PUT: Ürün güncelle (sadece owner)
 router.put('/:id', auth(), upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, price, stock, barcode } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Geçersiz ürün ID' });
+    }
 
     const product = await Product.findById(id);
     if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
@@ -131,10 +135,10 @@ router.put('/:id', auth(), upload.single('image'), async (req, res) => {
   }
 });
 
+// ✅ DELETE: Ürün sil (sadece owner)
 router.delete('/:id', auth(), async (req, res) => {
   try {
     const { id } = req.params;
-    const mongoose = require('mongoose');
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'Geçersiz ürün ID' });
     }
@@ -152,6 +156,27 @@ router.delete('/:id', auth(), async (req, res) => {
   } catch (err) {
     console.error('Silme hatası:', err);
     res.status(500).json({ error: 'Ürün silinemedi' });
+  }
+});
+
+// ✅ YENİ: Giriş yapan kullanıcının ürün istatistikleri
+router.get('/stats/products', auth(), async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const products = await Product.find({ owner: userId });
+
+    const totalProducts = products.length;
+    const inStock = products.filter(p => p.stock > 0).length;
+    const outOfStock = products.filter(p => p.stock === 0).length;
+
+    res.status(200).json({
+      totalProducts,
+      inStock,
+      outOfStock,
+    });
+  } catch (err) {
+    console.error('Kullanıcı ürün istatistik hatası:', err);
+    res.status(500).json({ error: 'Ürün istatistikleri alınamadı' });
   }
 });
 
