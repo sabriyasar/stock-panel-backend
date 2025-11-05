@@ -31,10 +31,20 @@ module.exports = (role) => async (req, res, next) => {
 
     req.user = { id: user._id, role: user.role }
 
+    // ---------------- Sliding Session ----------------
+    // Token geçerli, yeni token oluştur ve header'a ekle
+    const newToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' } // token süresi tekrar 15 dk
+    )
+    res.setHeader('Authorization', `Bearer ${newToken}`)
+    // --------------------------------------------------
+
     console.log('✅ Doğrulanan kullanıcı:', req.user)
     next()
   } catch (err) {
     console.error('Auth middleware hatası:', err.message)
-    return res.status(401).json({ error: 'Token geçersiz' })
+    return res.status(401).json({ error: 'Token geçersiz veya süresi dolmuş' })
   }
 }
