@@ -22,6 +22,8 @@ const usersRouter = require("./routes/users/user");
 const usersAuthRouter = require("./routes/users/auth");
 const userStatsRouter = require("./routes/users/stats");
 
+const catalogRoutes = require('./routes/catalog')
+
 const app = express();
 const server = http.createServer(app);
 
@@ -76,6 +78,8 @@ io.on("connection", (socket) => {
 
 // ✅ ROUTES
 app.use("/api/products", productsRouter);
+app.use('/api/catalogs', catalogRoutes)
+
 
 // ADMIN PANEL
 app.use("/api/admin/users", adminRouter);
