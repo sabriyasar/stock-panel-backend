@@ -8,6 +8,7 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 
 // POST: yeni katalog oluştur
+// POST: yeni katalog oluştur
 router.post('/', auth(), async (req, res) => {
   try {
     const { productIds } = req.body;
@@ -18,14 +19,23 @@ router.post('/', auth(), async (req, res) => {
       return res.status(400).json({ error: 'Geçerli ürün bulunamadı' });
     }
 
+    // req.user.id'nin varlığını kontrol et
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Kullanıcı doğrulanamadı' });
+    }
+
     const catalog = new Catalog({
-      owner: req.user.id,
+      owner: req.user.id,          // kesin user ID
       products: validProducts.map(p => p._id),
       uuid: uuidv4()
     });
 
     await catalog.save();
-    res.status(201).json({ uuid: catalog.uuid });
+
+    res.status(201).json({ 
+      uuid: catalog.uuid, 
+      owner: catalog.owner  // debug için
+    });
   } catch (err) {
     console.error('Katalog POST hatası:', err);
     res.status(500).json({ error: 'Katalog oluşturulamadı' });
