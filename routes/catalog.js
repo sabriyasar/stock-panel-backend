@@ -10,7 +10,7 @@ const router = express.Router();
 // POST: yeni katalog oluştur
 router.post('/', auth(), async (req, res) => {
   try {
-    const { productIds } = req.body; // seçilen ürünlerin ID'leri
+    const { productIds } = req.body;
 
     // Product ID'lerini DB'de kontrol et
     const validProducts = await Product.find({ _id: { $in: productIds } });
@@ -19,7 +19,7 @@ router.post('/', auth(), async (req, res) => {
     }
 
     const catalog = new Catalog({
-      owner: req.user.id,       // artık gerçek user ID
+      owner: req.user.id,
       products: validProducts.map(p => p._id),
       uuid: uuidv4()
     });
@@ -75,7 +75,7 @@ router.get('/:uuid', async (req, res) => {
   }
 });
 
-// DELETE: katalog silme
+// DELETE: tekil katalog silme
 router.delete('/:uuid', auth(), async (req, res) => {
   try {
     const { uuid } = req.params;
@@ -90,6 +90,27 @@ router.delete('/:uuid', auth(), async (req, res) => {
   } catch (err) {
     console.error('Katalog DELETE hatası:', err);
     res.status(500).json({ error: 'Katalog silinemedi' });
+  }
+});
+
+// DELETE: toplu katalog silme
+router.delete('/bulk-delete', auth(), async (req, res) => {
+  try {
+    const { uuids } = req.body; // string array
+    if (!Array.isArray(uuids) || uuids.length === 0) {
+      return res.status(400).json({ error: 'Silinecek kataloglar belirtilmedi' });
+    }
+
+    // Kullanıcıya ait katalogları filtrele
+    const catalogs = await Catalog.find({ uuid: { $in: uuids }, owner: req.user.id });
+
+    if (!catalogs.length) return res.status(404).json({ error: 'Hiçbir katalog bulunamadı veya yetkisiz' });
+
+    await Catalog.deleteMany({ uuid: { $in: catalogs.map(c => c.uuid) } });
+    res.json({ message: 'Seçilen kataloglar silindi' });
+  } catch (err) {
+    console.error('Toplu DELETE hatası:', err);
+    res.status(500).json({ error: 'Kataloglar silinemedi' });
   }
 });
 
