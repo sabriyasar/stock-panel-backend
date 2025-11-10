@@ -32,6 +32,23 @@ router.post('/', auth(), async (req, res) => {
   }
 });
 
+// GET: Kullanıcının kendi oluşturduğu kataloglar
+router.get('/my-catalogs', auth(), async (req, res) => {
+  try {
+    const catalogs = await Catalog.find({ owner: req.user.id }).sort({ createdAt: -1 });
+
+    const formattedCatalogs = catalogs.map(c => ({
+      uuid: c.uuid,
+      createdAt: c.createdAt
+    }));
+
+    res.status(200).json({ catalogs: formattedCatalogs });
+  } catch (err) {
+    console.error('Kullanıcı katalogları GET hatası:', err);
+    res.status(500).json({ error: 'Kataloglar alınamadı' });
+  }
+});
+
 // GET: katalogu görüntüleme
 router.get('/:uuid', async (req, res) => {
   try {
@@ -46,13 +63,33 @@ router.get('/:uuid', async (req, res) => {
       price: p.price,
       stock: p.stock,
       barcode: p.barcode || '',
-      image: p.image?.data ? `data:${p.image.contentType};base64,${p.image.data.toString('base64')}` : ''
+      image: p.image?.data
+        ? `data:${p.image.contentType};base64,${p.image.data.toString('base64')}`
+        : ''
     }));
 
     res.status(200).json({ products: formattedProducts });
   } catch (err) {
     console.error('Katalog GET hatası:', err);
     res.status(500).json({ error: 'Katalog alınamadı' });
+  }
+});
+
+// DELETE: katalog silme
+router.delete('/:uuid', auth(), async (req, res) => {
+  try {
+    const { uuid } = req.params;
+    const catalog = await Catalog.findOne({ uuid });
+
+    if (!catalog) return res.status(404).json({ error: 'Katalog bulunamadı' });
+    if (catalog.owner.toString() !== req.user.id)
+      return res.status(403).json({ error: 'Bu katalogu silmeye yetkiniz yok' });
+
+    await catalog.deleteOne();
+    res.status(200).json({ message: 'Katalog silindi' });
+  } catch (err) {
+    console.error('Katalog DELETE hatası:', err);
+    res.status(500).json({ error: 'Katalog silinemedi' });
   }
 });
 
