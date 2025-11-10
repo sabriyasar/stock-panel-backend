@@ -2,6 +2,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const Catalog = require('../models/Catalog');
 const Product = require('../models/Product');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
@@ -11,16 +12,22 @@ router.post('/', auth(), async (req, res) => {
   try {
     const { productIds } = req.body; // seçilen ürünlerin ID'leri
 
+    // Product ID'lerini DB'de kontrol et
+    const validProducts = await Product.find({ _id: { $in: productIds } });
+    if (validProducts.length === 0) {
+      return res.status(400).json({ error: 'Geçerli ürün bulunamadı' });
+    }
+
     const catalog = new Catalog({
-      owner: req.user.id,
-      products: productIds,
+      owner: req.user.id,       // artık gerçek user ID
+      products: validProducts.map(p => p._id),
       uuid: uuidv4()
     });
 
     await catalog.save();
     res.status(201).json({ uuid: catalog.uuid });
   } catch (err) {
-    console.error(err);
+    console.error('Katalog POST hatası:', err);
     res.status(500).json({ error: 'Katalog oluşturulamadı' });
   }
 });
@@ -33,7 +40,6 @@ router.get('/:uuid', async (req, res) => {
 
     if (!catalog) return res.status(404).json({ error: 'Katalog bulunamadı' });
 
-    // products alanını frontend için formatlayabiliriz
     const formattedProducts = catalog.products.map(p => ({
       _id: p._id,
       name: p.name,
@@ -45,7 +51,7 @@ router.get('/:uuid', async (req, res) => {
 
     res.status(200).json({ products: formattedProducts });
   } catch (err) {
-    console.error(err);
+    console.error('Katalog GET hatası:', err);
     res.status(500).json({ error: 'Katalog alınamadı' });
   }
 });
